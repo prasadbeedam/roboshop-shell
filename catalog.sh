@@ -1,15 +1,24 @@
 #!/bin/bash
 
-ID=$( id -u )
+ID=$(id -u)
+R="\e[31m"
+G="\e[32m"
+Y="\e[33m"
+N="\e[0m"
 
-VALIDATE (){
-    if [ $1 ne 0 ]
-    than
-       echo  "$2 ... Failed"
-       exit 1
+TIMESTAMP=$(date +%F-%H-%M-%S)
+LOGFILE="/tmp/$0-$TIMESTAMP.log"
+
+echo "script stareted executing at $TIMESTAMP" &>> $LOGFILE
+
+VALIDATE(){
+    if [ $1 -ne 0 ]
+    then
+        echo -e "$2 ... $R FAILED $N"
+        exit 1
     else
-       echo  "$2 .. Success"
-    fi   
+        echo -e "$2 ... $G SUCCESS $N"
+    fi
 }
 
 if [ $ID -ne 0 ]
