@@ -50,3 +50,26 @@ unzip /tmp/catalogue.zip
 cd /app
 
 npm install 
+
+cp /home/ec2-user/roboshop-shell/catalogue.service /etc/systemd/system/catalogue.service
+
+systemctl daemon-reload
+
+systemctl enable catalogue
+
+systemctl start catalogue
+
+cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo
+
+dnf install -y mongodb-mongosh
+
+SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')")
+
+if [ $SCHEMA_EXISTS -lt 0 ]
+then
+    echo "Schema does not exists ... LOADING"
+    mongosh --host $MONGO_HOST </app/schema/catalogue.js &>> $LOGFILE
+    VALIDATE $? "Loading catalogue data"
+else
+    echo -e "schema already exists... $Y SKIPPING $N"
+fi
