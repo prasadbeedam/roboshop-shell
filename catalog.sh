@@ -8,6 +8,7 @@ N="\e[0m"
 
 TIMESTAMP=$(date +%F-%H-%M-%S)
 LOGFILE="/tmp/$0-$TIMESTAMP.log"
+MONGO_HOST=mongodb.anuprasad.online
 
 echo "script stareted executing at $TIMESTAMP" &>> $LOGFILE
 
