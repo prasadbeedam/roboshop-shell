@@ -31,38 +31,62 @@ else
 fi # fi means reverse of if, indicating condition end
 
 dnf module disable nodejs -y &>> $LOGFILE
+VALIDATE $? "Disabling current nodejs"
 
-dnf module enable nodejs -y &>> $LOGFILE
+dnf module enable nodejs:20 -y &>> $LOGFILE
+VALIDATE $? "Enabling nodejs:20"
 
-dnf install nodejs -y  &>> $LOGFILE
+dnf install nodejs -y &>> $LOGFILE
+VALIDATE $? "Installing NodeJS"
 
-user add roboshop &>> $LOGFILE
+id roboshop &>> $LOGFILE
+if [ $? -ne 0 ]
+then
+    useradd roboshop &>> $LOGFILE
+    VALIDATE $? "Adding roboshop user"
+else
+    echo -e "roboshop user already exist...$Y SKIPPING $N"
+fi
 
-mkdir /app &>> $LOGFILE
+rm -rf /app &>> $LOGFILE
+VALIDATE $? "clean up existing directory"
+
+mkdir -p /app &>> $LOGFILE
+VALIDATE $? "Creating app directory"
 
 cd /app &>> $LOGFILE
+VALIDATE $? "Moving to app dir"
 
 curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> $LOGFILE
 
-cd /app &>> $LOGFILE
+VALIDATE $? "download code"
 
 unzip /tmp/catalogue.zip &>> $LOGFILE
-
-cd /app &>> $LOGFILE
+VALIDATE $? "unzip code"
 
 npm install  &>> $LOGFILE
+VALIDATE $? "install dependencies"
 
 cp /home/ec2-user/roboshop-shell/catalogue.service /etc/systemd/system/catalogue.service &>> $LOGFILE
 
 systemctl daemon-reload &>> $LOGFILE
+VALIDATE $? "Demaon reload"
 
 systemctl enable catalogue &>> $LOGFILE
 
+VALIDATE $? "Enable catalog"
+
 systemctl start catalogue &>> $LOGFILE
+
+VALIDATE $? "Start catalog"
 
 cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
 
+VALIDATE $? "copying mongodbrepo"
+
 dnf install -y mongodb-mongosh &>> $LOGFILE
+
+VALIDATE $? "install mysql
 
 SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')") &>> $LOGFILE
 
