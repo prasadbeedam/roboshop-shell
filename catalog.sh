@@ -30,41 +30,41 @@ else
     echo "You are root user"
 fi # fi means reverse of if, indicating condition end
 
-dnf module disable nodejs -y
+dnf module disable nodejs -y &>> $LOGFILE
 
-dnf module enable nodejs -y
+dnf module enable nodejs -y &>> $LOGFILE
 
-dnf install nodejs -y 
+dnf install nodejs -y  &>> $LOGFILE
 
-user add roboshop
+user add roboshop &>> $LOGFILE
 
-mkdir /app
+mkdir /app &>> $LOGFILE
 
-cd /app
+cd /app &>> $LOGFILE
 
-curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip
+curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> $LOGFILE
 
-cd /app
+cd /app &>> $LOGFILE
 
-unzip /tmp/catalogue.zip
+unzip /tmp/catalogue.zip &>> $LOGFILE
 
-cd /app
+cd /app &>> $LOGFILE
 
-npm install 
+npm install  &>> $LOGFILE
 
-cp /home/ec2-user/roboshop-shell/catalogue.service /etc/systemd/system/catalogue.service
+cp /home/ec2-user/roboshop-shell/catalogue.service /etc/systemd/system/catalogue.service &>> $LOGFILE
 
-systemctl daemon-reload
+systemctl daemon-reload &>> $LOGFILE
 
-systemctl enable catalogue
+systemctl enable catalogue &>> $LOGFILE
 
-systemctl start catalogue
+systemctl start catalogue &>> $LOGFILE
 
-cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo
+cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
 
-dnf install -y mongodb-mongosh
+dnf install -y mongodb-mongosh &>> $LOGFILE
 
-SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')")
+SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')") &>> $LOGFILE
 
 if [ $SCHEMA_EXISTS -lt 0 ]
 then

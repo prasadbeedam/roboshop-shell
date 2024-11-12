@@ -30,24 +30,24 @@ else
     echo "You are root user"
 fi # fi means reverse of if, indicating condition end
 
-dnf install nginx -y
+dnf install nginx -y &>> $LOGFILE
 
-systemctl enable nginx
+systemctl enable nginx &>> $LOGFILE
 
-systemctl start nginx
+systemctl start nginx &>> $LOGFILE
 
 
-rm -rf /usr/share/nginx/html/*
+rm -rf /usr/share/nginx/html/* &>> $LOGFILE
 
-curl -o /tmp/web.zip https://roboshop-builds.s3.amazonaws.com/web.zip
+curl -o /tmp/web.zip https://roboshop-builds.s3.amazonaws.com/web.zip &>> $LOGFILE
 
-cd /usr/share/nginx/html
+cd /usr/share/nginx/html &>> $LOGFILE
 
-unzip /tmp/web.zip
+unzip /tmp/web.zip &>> $LOGFILE
 
-cp /home/ec2-user/roboshop-shell/roboshop.conf /etc/nginx/default.d/roboshop.conf
+cp /home/ec2-user/roboshop-shell/roboshop.conf /etc/nginx/default.d/roboshop.conf &>> $LOGFILE
 
-systemctl restart nginx 
+systemctl restart nginx &>> $LOGFILE
 
 
 

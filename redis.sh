@@ -30,11 +30,11 @@ else
     echo "You are root user"
 fi # fi means reverse of if, indicating condition end
 
-dnf install redis -y
+dnf install redis -y &>> $LOGFILE
 
-sed -i 's/127.0.0.1/0.0.0.0/g' /etc/redis/redis.conf
+sed -i 's/127.0.0.1/0.0.0.0/g' /etc/redis/redis.conf &>> $LOGFILE
 
 
-systemctl enable redis
+systemctl enable redis &>> $LOGFILE
 
-systemctl start redis
+systemctl start redis &>> $LOGFILE
