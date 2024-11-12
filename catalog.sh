@@ -85,8 +85,7 @@ cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOG
 VALIDATE $? "copying mongodbrepo"
 
 dnf install -y mongodb-mongosh &>> $LOGFILE
-
-VALIDATE $? "install mysql
+VALIDATE $? "Installing mongo client"
 
 SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('catalogue')") &>> $LOGFILE
 
