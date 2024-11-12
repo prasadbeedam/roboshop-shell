@@ -31,23 +31,32 @@ else
 fi # fi means reverse of if, indicating condition end
 
 dnf install nginx -y &>> $LOGFILE
+VALIDATE $? "INSTALL NGINX"
 
 systemctl enable nginx &>> $LOGFILE
+VALIDATE $? "ENABLE VERSION"
 
 systemctl start nginx &>> $LOGFILE
+VALIDATE $? "START NGINX"
 
 
 rm -rf /usr/share/nginx/html/* &>> $LOGFILE
+VALIDATE $? "Remove all existing files"
 
 curl -o /tmp/web.zip https://roboshop-builds.s3.amazonaws.com/web.zip &>> $LOGFILE
+VALIDATE $? "download code"
 
 cd /usr/share/nginx/html &>> $LOGFILE
+VALIDATE $? "moving in to the file"
 
 unzip /tmp/web.zip &>> $LOGFILE
+VALIDATE $? "unzip the file"
 
 cp /home/ec2-user/roboshop-shell/roboshop.conf /etc/nginx/default.d/roboshop.conf &>> $LOGFILE
+VALIDATE $? "copy file"
 
 systemctl restart nginx &>> $LOGFILE
+VALIDATE $? "restart nginx"
 
 
 
