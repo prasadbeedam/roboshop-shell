@@ -32,9 +32,17 @@ fi # fi means reverse of if, indicating condition end
 
 dnf install redis -y &>> $LOGFILE
 
+VALIDATE $? "Install mysql"
+
 sed -i 's/127.0.0.1/0.0.0.0/g' /etc/redis/redis.conf &>> $LOGFILE
+
+VALIDATE $?  "remote access to redis"
 
 
 systemctl enable redis &>> $LOGFILE
 
+VALIDATE $? "enable the redis"
+
 systemctl start redis &>> $LOGFILE
+
+VALIDATE $? "start Redis"
