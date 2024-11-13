@@ -1,34 +1,32 @@
 #!/bin/bash
 
-ID=$(id -u)
+USERID=$(id -u)
+TIMESTAMP=$(date +%F-%H-%M-%S)
+SCRIPT_NAME=$(echo $0 | cut -d "." -f1)
+LOGFILE=/tmp/$SCRIPT_NAME-$TIMESTAMP.log
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
-
-TIMESTAMP=$(date +%F-%H-%M-%S)
-LOGFILE="/tmp/$0-$TIMESTAMP.log"
 MONGO_HOST=mongodb.anuprasad.online
 
-echo "script stareted executing at $TIMESTAMP" &>> $LOGFILE
-
 VALIDATE(){
-    if [ $1 -ne 0 ]
-    then
-        echo -e "$2 ... $R FAILED $N"
+   if [ $1 -ne 0 ]
+   then
+        echo -e "$2...$R FAILURE $N"
         exit 1
     else
-        echo -e "$2 ... $G SUCCESS $N"
+        echo -e "$2...$G SUCCESS $N"
     fi
 }
 
-if [ $ID -ne 0 ]
+if [ $USERID -ne 0 ]
 then
-    echo -e "$R ERROR:: Please run this script with root access $N"
-    exit 1 # you can give other than 0
+    echo "Please run this script with root access."
+    exit 1 # manually exit if error comes.
 else
-    echo "You are root user"
-fi # fi means reverse of if, indicating condition end
+    echo "You are super user."
+fi
 
 dnf module disable nodejs -y &>> $LOGFILE
 VALIDATE $? "Disabling current nodejs"
@@ -54,35 +52,31 @@ VALIDATE $? "clean up existing directory"
 mkdir -p /app &>> $LOGFILE
 VALIDATE $? "Creating app directory"
 
-cd /app &>> $LOGFILE
-VALIDATE $? "Moving to app dir"
-
 curl -o /tmp/catalogue.zip https://roboshop-builds.s3.amazonaws.com/catalogue.zip &>> $LOGFILE
+VALIDATE $? "downloading catalogue application"
 
-VALIDATE $? "download code"
+cd /app  &>> $LOGFILE
+VALIDATE $? "Moving to app directory"
 
 unzip /tmp/catalogue.zip &>> $LOGFILE
-VALIDATE $? "unzip code"
+VALIDATE $? "extracting catalogue"
 
-npm install  &>> $LOGFILE
-VALIDATE $? "install dependencies"
+npm install &>> $LOGFILE
+VALIDATE $? "Installing dependencies"
 
 cp /home/ec2-user/roboshop-shell/catalogue.service /etc/systemd/system/catalogue.service &>> $LOGFILE
 
 systemctl daemon-reload &>> $LOGFILE
-VALIDATE $? "Demaon reload"
+VALIDATE $? "Daemon reload"
 
 systemctl enable catalogue &>> $LOGFILE
-
-VALIDATE $? "Enable catalog"
+VALIDATE $? "Enable catalogue"
 
 systemctl start catalogue &>> $LOGFILE
-
-VALIDATE $? "Start catalog"
+VALIDATE $? "Start catalogue"
 
 cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
-
-VALIDATE $? "copying mongodbrepo"
+VALIDATE $? "Copying mongo repo"
 
 dnf install -y mongodb-mongosh &>> $LOGFILE
 VALIDATE $? "Installing mongo client"

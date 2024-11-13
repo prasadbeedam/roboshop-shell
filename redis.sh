@@ -1,48 +1,40 @@
 #!/bin/bash
 
-ID=$(id -u)
+USERID=$(id -u)
+TIMESTAMP=$(date +%F-%H-%M-%S)
+SCRIPT_NAME=$(echo $0 | cut -d "." -f1)
+LOGFILE=/tmp/$SCRIPT_NAME-$TIMESTAMP.log
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
-TIMESTAMP=$(date +%F-%H-%M-%S)
-LOGFILE="/tmp/$0-$TIMESTAMP.log"
-MONGO_HOST=mongodb.anuprasad.online
-
-echo "script stareted executing at $TIMESTAMP" &>> $LOGFILE
-
 VALIDATE(){
-    if [ $1 -ne 0 ]
-    then
-        echo -e "$2 ... $R FAILED $N"
+   if [ $1 -ne 0 ]
+   then
+        echo -e "$2...$R FAILURE $N"
         exit 1
     else
-        echo -e "$2 ... $G SUCCESS $N"
+        echo -e "$2...$G SUCCESS $N"
     fi
 }
 
-if [ $ID -ne 0 ]
+if [ $USERID -ne 0 ]
 then
-    echo -e "$R ERROR:: Please run this script with root access $N"
-    exit 1 # you can give other than 0
+    echo "Please run this script with root access."
+    exit 1 # manually exit if error comes.
 else
-    echo "You are root user"
-fi # fi means reverse of if, indicating condition end
+    echo "You are super user."
+fi
 
-dnf install redis -y &>> $LOGFILE
+dnf install redis -y &>>$LOGFILE
+VALIDATE $? "Installing redis"
 
-VALIDATE $? "Install mysql"
+sed -i 's/127.0.0.1/0.0.0.0/g' /etc/redis/redis.conf &>>$LOGFILE
+VALIDATE $? "remote access to redis"
 
-sed -i 's/127.0.0.1/0.0.0.0/g' /etc/redis/redis.conf &>> $LOGFILE
-
-VALIDATE $?  "remote access to redis"
-
-
-systemctl enable redis &>> $LOGFILE
-
-VALIDATE $? "enable the redis"
-
-systemctl start redis &>> $LOGFILE
-
-VALIDATE $? "start Redis"
+systemctl enable redis &>>$LOGFILE
+VALIDATE $? "Enabling Redis"
+ 
+systemctl start redis &>>$LOGFILE
+VALIDATE $? "Starting Redis"
