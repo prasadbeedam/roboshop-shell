@@ -85,5 +85,23 @@ systemctl start user &>>$LOGFILE
 
 VALIDATE $? "Start user service"
 
+cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo  &>>$LOGFILE
+
+VALIDATE $? "Copy mongodb file"
+
+dnf install mongodb-mongosh -y &>>$LOGFILE
+
+VALIDATE $? "Install mongodb"
+
+SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('users')") &>> $LOGFILE
+
+if [ $SCHEMA_EXISTS -lt 0 ]
+then
+    echo "Schema does not exists ... LOADING"
+    mongosh --host $MONGO_HOST </app/schema/user.js &>> $LOGFILE
+    VALIDATE $? "Loading user data"
+else
+    echo -e "schema already exists... $Y SKIPPING $N"
+fi
 
  
