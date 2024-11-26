@@ -28,60 +28,49 @@ else
     echo "You are super user."
 fi
 
-dnf module disable nodejs -y &>>$LOGFILE
+dnf module disable nodejs -y &>> $LOGFILE
+VALIDATE $? "Disabling current nodejs"
 
-VALIDATE $? "disabled defult nodejs"
+dnf module enable nodejs:20 -y &>> $LOGFILE
+VALIDATE $? "Enabling nodejs:20"
 
-dnf module enable nodejs:20 -y &>>$LOGFILE
+dnf install nodejs -y &>> $LOGFILE
+VALIDATE $? "Installing NodeJS"
 
-VALIDATE $? ""Enabled nodejs20 version"
+id roboshop &>> $LOGFILE
+if [ $? -ne 0 ]
+then
+    useradd roboshop &>> $LOGFILE
+    VALIDATE $? "Adding roboshop user"
+else
+    echo -e "roboshop user already exist...$Y SKIPPING $N"
+fi
 
-dnf install nodejs -y &>>$LOGFILE
+rm -rf /app &>> $LOGFILE
+VALIDATE $? "clean up existing directory"
 
-VALIDATE $? "Install Nodejs"
+mkdir -p /app &>> $LOGFILE
+VALIDATE $? "Creating app directory"
 
-useradd roboshop &>>$LOGFILE
+curl -o /tmp/cart.zip https://roboshop-builds.s3.amazonaws.com/cart.zip &>> $LOGFILE
+VALIDATE $? "downloading cart application"
 
-VALIDATE $? "Adding user"
+cd /app  &>> $LOGFILE
+VALIDATE $? "Moving to app directory"
 
+unzip /tmp/cart.zip &>> $LOGFILE
+VALIDATE $? "extracting cart"
 
-mkdir /app   &>>$LOGFILE
+npm install &>> $LOGFILE
+VALIDATE $? "Installing dependencies"
 
-VALIDATE $? "creating directory"
+cp /home/ec2-user/roboshop-shell/cart.service /etc/systemd/system/cart.service &>> $LOGFILE
 
-
-curl -L -o /tmp/cart.zip https://roboshop-builds.s3.amazonaws.com/cart.zip  &>>$LOGFILE
-
-VALIDATE $? "Download code"
-
-cd /app &>>$LOGFILE
-
-VALIDATE $? "Changing dir"
-
-unzip /tmp/cart.zip  &>>$LOGFILE
-
-VALIDATE $? "unziping the file"
-
-cd /app &>>$LOGFILE
-
-VALIDATE $? "Changing the dir"
-
-npm install  &>>$LOGFILE
-
-VALIATE $? "Installig dependencies"
-
-cp /home/ec2-user/roboshop-shell/cart.service /etc/systemd/system/cart.service &>>$LOGFILE
-
-VALIDATE $? "Coping the service file"
-
-systemctl daemon-reload &>>$LOGFILE
-
+systemctl daemon-reload &>> $LOGFILE
 VALIDATE $? "Daemon reload"
 
-systemctl enable cart &>>$LOGFILE
+systemctl enable cart &>> $LOGFILE
+VALIDATE $? "Enable cart"
 
-VALIDATE $? "service enble"
-
-systemctl start cart &>>$LOGFILE
-
-VALIDATE $? "Starting the cart service"
+systemctl start cart &>> $LOGFILE
+VALIDATE $? "Start cart"
