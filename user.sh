@@ -28,70 +28,58 @@ else
     echo "You are super user."
 fi
 
-dnf module disable nodejs -y &>>$LOGFILE
+dnf module disable nodejs -y &>> $LOGFILE
+VALIDATE $? "Disabling current nodejs"
 
-VALIDATE $? "disabled defult nodejs"
+dnf module enable nodejs:20 -y &>> $LOGFILE
+VALIDATE $? "Enabling nodejs:20"
 
-dnf module enable nodejs:20 -y &>>$LOGFILE
+dnf install nodejs -y &>> $LOGFILE
+VALIDATE $? "Installing NodeJS"
 
-VALIDATE $? ""Enabled nodejs20 version"
+id roboshop &>> $LOGFILE
+if [ $? -ne 0 ]
+then
+    useradd roboshop &>> $LOGFILE
+    VALIDATE $? "Adding roboshop user"
+else
+    echo -e "roboshop user already exist...$Y SKIPPING $N"
+fi
 
-dnf install nodejs -y &>>$LOGFILE
+rm -rf /app &>> $LOGFILE
+VALIDATE $? "clean up existing directory"
 
-VALIDATE $? "Install Nodejs"
+mkdir -p /app &>> $LOGFILE
+VALIDATE $? "Creating app directory"
 
-useradd roboshop &>>$LOGFILE
+curl -o /tmp/user.zip https://roboshop-builds.s3.amazonaws.com/user.zip &>> $LOGFILE
+VALIDATE $? "downloading user application"
 
-VALIDATE $? "Adding user"
+cd /app  &>> $LOGFILE
+VALIDATE $? "Moving to app directory"
 
+unzip /tmp/user.zip &>> $LOGFILE
+VALIDATE $? "extracting user"
 
-mkdir /app   &>>$LOGFILE
+npm install &>> $LOGFILE
+VALIDATE $? "Installing dependencies"
 
-VALIDATE $? "creating directory"
+cp /home/ec2-user/roboshop-shell/user.service /etc/systemd/system/user.service &>> $LOGFILE
 
-curl -L -o /tmp/user.zip https://roboshop-builds.s3.amazonaws.com/user.zip &>>$LOGFILE
-
-VALIDATE $? "Download code"
-
-cd /app &>>$LOGFILE
-
-VALIDATE $? "Changing the dir"
-
-unzip /tmp/user.zip  &>>$LOGFILE
-
-VALIDATE $? "Unzip code"
-
-cd /app &>>$LOGFILE
-
-VALIDATE $? "Changing Dir"
-
-npm install &>>$LOGFILE
-
-VALIDATE $? "Install dependencies"
-
-cp /home/ec2-user/roboshop-shell/user.service /etc/systemd/system/user.service &>>$LOGFILE
-
-VALIDATE $? "Copy the service file"
-
-systemctl daemon-reload &>>$LOGFILE
-
+systemctl daemon-reload &>> $LOGFILE
 VALIDATE $? "Daemon reload"
 
-systemctl enable user  &>>$LOGFILE
+systemctl enable user &>> $LOGFILE
+VALIDATE $? "Enable user"
 
-VALIDATE $? "Enable user "
+systemctl start user &>> $LOGFILE
+VALIDATE $? "Start user"
 
-systemctl start user &>>$LOGFILE
+cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo &>> $LOGFILE
+VALIDATE $? "Copying mongo repo"
 
-VALIDATE $? "Start user service"
-
-cp /home/ec2-user/roboshop-shell/mongo.repo /etc/yum.repos.d/mongo.repo  &>>$LOGFILE
-
-VALIDATE $? "Copy mongodb file"
-
-dnf install mongodb-mongosh -y &>>$LOGFILE
-
-VALIDATE $? "Install mongodb"
+dnf install -y mongodb-mongosh &>> $LOGFILE
+VALIDATE $? "Installing mongo client"
 
 SCHEMA_EXISTS=$(mongosh --host $MONGO_HOST --quiet --eval "db.getMongo().getDBNames().indexOf('users')") &>> $LOGFILE
 
@@ -103,5 +91,3 @@ then
 else
     echo -e "schema already exists... $Y SKIPPING $N"
 fi
-
- 
