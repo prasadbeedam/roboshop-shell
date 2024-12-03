@@ -28,7 +28,7 @@ else
     echo "You are super user."
 fi
 
-nf install maven -y &>> $LOGFILE
+dnf install maven -y &>> $LOGFILE
 VALIDATE $? "Installing Maven"
 
 id roboshop &>> $LOGFILE
